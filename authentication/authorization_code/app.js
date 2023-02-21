@@ -15,7 +15,7 @@ var cookieParser = require('cookie-parser');
 const { json } = require('express');
 
 var client_id = '8e97f4c2535c40229b08233f20b3d200'; // Your client id
-var client_secret = 'ae52d403ad654d77ad0c4d9caab7be64'; // Your secret
+var client_secret = ''; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
 /**
@@ -92,7 +92,7 @@ app.get('/callback', function (req, res) {
 
         var access_token = body.access_token,
           refresh_token = body.refresh_token;
-          
+
         var options = {
           url: 'https://api.spotify.com/v1/me',
           headers: { 'Authorization': 'Bearer ' + access_token },
