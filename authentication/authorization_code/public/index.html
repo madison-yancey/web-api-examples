@@ -1,8 +1,9 @@
 <!doctype html>
 <html>
   <head>
-    <title>Example of the Authorization Code flow with Spotify</title>
+    <title>Spotify Project</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
     <style type="text/css">
       #login, #loggedin {
         display: none;
@@ -19,45 +20,54 @@
   <body>
     <div class="container">
       <div id="login">
-        <h1>This is an example of the Authorization Code flow</h1>
-        <a href="/login" class="btn btn-primary">Log in with Spotify</a>
+        <h1 id="login-header">Log in with Spotify</h1>
+        <a href="/login" id="btn-login">Login</a>
       </div>
       <div id="loggedin">
         <div id="user-profile">
         </div>
+        <div id="user-top-artists">
+        </div>
         <div id="oauth">
         </div>
-        <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
-        <button type="button">Load user info</button> 
+        <!--button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button-->
       </div>
     </div>
 
     <script id="user-profile-template" type="text/x-handlebars-template">
-      <h1>Logged in as {{display_name}}</h1>
+      <h1 id="whos-logged-in">Logged in as: {{display_name}} (Country: {{country}})</h1>
       <div class="media">
         <div class="pull-left">
           <img class="media-object" width="150" src="{{images.0.url}}" />
+          <a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a>
         </div>
         <div class="media-body">
-          <dl class="dl-horizontal">
+          <!--dl class="dl-horizontal">
             <dt>Display name</dt><dd class="clearfix">{{display_name}}</dd>
             <dt>Id</dt><dd>{{id}}</dd>
-            <dt>Email</dt><dd>{{email}}</dd>
-            <dt>Spotify URI</dt><dd><a href="{{external_urls.spotify}}">{{external_urls.spotify}}</a></dd>
             <dt>Link</dt><dd><a href="{{href}}">{{href}}</a></dd>
             <dt>Profile Image</dt><dd class="clearfix"><a href="{{images.0.url}}">{{images.0.url}}</a></dd>
-            <dt>Country</dt><dd>{{country}}</dd>
-          </dl>
+            <dt>Email</dt><dd>{{email}}</dd>
+          </dl-->
         </div>
       </div>
     </script>
 
+    <script id="user-top-artists-template" type="text/x-handlebars-template">
+      <h2 id="artists">Top 10 Artists</h2>
+      <dt>
+        {{#each this}}
+        <dd>{{name}}</dd>
+        {{/each}}
+      </dt>
+    </script>
+
     <script id="oauth-template" type="text/x-handlebars-template">
-      <h2>oAuth info</h2>
+      <!--h2>oAuth info</h2>
       <dl class="dl-horizontal">
         <dt>Access token</dt><dd class="text-overflow">{{access_token}}</dd>
         <dt>Refresh token</dt><dd class="text-overflow">{{refresh_token}}</dd>
-      </dl>
+      </dl-->
     </script>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
@@ -87,7 +97,13 @@
             oauthTemplate = Handlebars.compile(oauthSource),
             oauthPlaceholder = document.getElementById('oauth');
 
+        var userTopArtistsSource = document.getElementById('user-top-artists-template').innerHTML,
+            userTopArtistsTemplate = Handlebars.compile(userTopArtistsSource),
+            userTopArtistsPlaceholder = document.getElementById('user-top-artists');
+
         var params = getHashParams();
+
+        var artists;
 
         var access_token = params.access_token,
             refresh_token = params.refresh_token,
@@ -113,6 +129,21 @@
 
                   $('#login').hide();
                   $('#loggedin').show();
+                }
+            });
+
+            $.ajax({
+                url: 'https://api.spotify.com/v1/me/top/artists',
+                headers: {
+                  'Authorization': 'Bearer ' + access_token
+                },
+                success: function(response) {
+                  artists = response.items
+                  for(let artist of artists){
+                    console.log(artist)
+                  }
+                  artists = artists.slice(0, 20)
+                  userTopArtistsPlaceholder.innerHTML = userTopArtistsTemplate(artists);
                 }
             });
           } else {
